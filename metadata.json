@@ -1,0 +1,7 @@
+{
+    "uuid": "miapplet@music",
+    "name": "Music Control",
+    "description": "Reproduction control for music using MPRIS Reproduction",
+    "icon": "media-playback-start",
+    "max-instances": 1
+}

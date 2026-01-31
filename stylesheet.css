@@ -1,0 +1,23 @@
+.miapplet-button {
+    padding: 4px 8px;
+    min-height: 24px;
+    min-width: 24px;
+    border-radius: 6px;
+}
+
+.miapplet-label {
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.miapplet-track {
+    font-size: 13px;
+    margin-top: 6px;
+    margin-left: 6px;
+    max-width: 280px;
+}
+
+.miapplet-track {
+    color: rgba(255, 255, 255, 0.8);
+}
+
