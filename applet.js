@@ -10,16 +10,17 @@ class MusicApplet extends Applet.Applet {
         super(orientation, panelHeight, instanceId);
 
         this.box = new St.BoxLayout({
-            style_class: "panel-status-menu-box"
+            style_class: "panel-status-menu-box",
+            y_align: St.Align.MIDDLE
         });
 
         this.actor.add_child(this.box);
 
 
-        // Botones
-        this.prevBtn = this._createButton("◀◀", () => this._send("Previous"));
+        // Buttons
+        this.prevBtn = this._createButton("⏮", () => this._send("Previous"));
         this.playBtn = this._createButton("❚❚", () => this._send("PlayPause"));
-        this.nextBtn = this._createButton("▶▶", () => this._send("Next"));
+        this.nextBtn = this._createButton("⏭", () => this._send("Next"));
 
         this.trackLabel = new St.Label({
             text: "",
@@ -46,7 +47,7 @@ class MusicApplet extends Applet.Applet {
     _createButton(label, callback) {
         let lbl = new St.Label({
             text: label,
-            style_class: "miapplet-label",
+            style: "font-size: 20px;",
             y_align: St.Align.MIDDLE
         });
 
@@ -83,9 +84,9 @@ class MusicApplet extends Applet.Applet {
                     let status = result.deep_unpack()[0].deep_unpack();
 
                     if (status === "Playing")
-                        this.playLabel.set_text("❚❚");
+                        this.playLabel.set_text("⏸");
                     else
-                        this.playLabel.set_text("▶");
+                        this.playLabel.set_text("▸");
 
                 } catch (e) {
                     logError(e);
@@ -121,6 +122,7 @@ class MusicApplet extends Applet.Applet {
     _updateTrackInfo() {
         if (this.players.length === 0) {
             this.trackLabel.set_text("");
+            this.set_applet_tooltip("");
             return;
         }
 
@@ -142,8 +144,9 @@ class MusicApplet extends Applet.Applet {
                     let status = props["PlaybackStatus"]?.deep_unpack();
                     let metadata = props["Metadata"]?.deep_unpack();
 
-                    if (status !== "Playing" || !metadata) {
+                    if (!metadata) {
                         this.trackLabel.set_text("");
+                        this.set_applet_tooltip("");
                         return;
                     }
 
@@ -151,8 +154,17 @@ class MusicApplet extends Applet.Applet {
                     let artistArr = metadata["xesam:artist"]?.deep_unpack() || [];
                     let artist = artistArr.length > 0 ? artistArr[0] : "";
 
-                    if (title || artist) {
-                        this.trackLabel.set_text(`  ${artist} – ${title}`);
+                    let fullTitle = artist && title
+                        ? `${artist} – ${title}`
+                        : title || artist;
+
+                    // Tooltip = Always show text if exists
+                    this.set_applet_tooltip(fullTitle || "");
+
+                    // Panel = Only show text when it's playing. 
+                    // This is to avoid visual disturbance while you're not listening to anything.
+                    if (status === "Playing" && fullTitle) {
+                        this.trackLabel.set_text("  " + fullTitle);
                     } else {
                         this.trackLabel.set_text("");
                     }
@@ -160,10 +172,12 @@ class MusicApplet extends Applet.Applet {
                 } catch (e) {
                     logError(e);
                     this.trackLabel.set_text("");
+                    this.set_applet_tooltip("");
                 }
             }
         );
     }
+
 
     _send(cmd) {
         if (this.players.length === 0)
@@ -193,3 +207,4 @@ class MusicApplet extends Applet.Applet {
 function main(metadata, orientation, panelHeight, instanceId) {
     return new MusicApplet(metadata, orientation, panelHeight, instanceId);
 }
+
