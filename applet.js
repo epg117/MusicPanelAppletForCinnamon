@@ -9,10 +9,14 @@ class MusicApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
         super(orientation, panelHeight, instanceId);
 
+        const Clutter = imports.gi.Clutter;
+
         this.box = new St.BoxLayout({
             style_class: "panel-status-menu-box",
-            y_align: St.Align.MIDDLE
+            vertical: false
         });
+
+        this.box.set_y_align(Clutter.ActorAlign.CENTER);
 
         this.actor.add_child(this.box);
 
@@ -47,7 +51,6 @@ class MusicApplet extends Applet.Applet {
     _createButton(label, callback) {
         let lbl = new St.Label({
             text: label,
-            style: "font-size: 20px;",
             y_align: St.Align.MIDDLE
         });
 
