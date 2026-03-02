@@ -9,7 +9,50 @@ class MusicApplet extends Applet.Applet {
     constructor(metadata, orientation, panelHeight, instanceId) {
         super(orientation, panelHeight, instanceId);
 
+        const PopupMenu = imports.ui.popupMenu;
+        const Settings = imports.ui.settings;
         const Clutter = imports.gi.Clutter;
+
+        this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
+
+        // Default value: true (show controls)
+        this.settings.bind(
+            "show-controls",
+            "showControls",
+            this._updateControlsVisibility,
+            null
+        );
+
+        this.settings.bind(
+            "show-label",
+            "showLabel",
+            this._updateLabelVisibility,
+            null
+        );
+
+        this.showControlsSwitch = new PopupMenu.PopupSwitchMenuItem(
+            "Show controls",
+            true
+        );
+
+        this.showControlsSwitch.connect("toggled", (item, state) => {
+            this.showControls = state;
+            this._updateControlsVisibility();
+        });
+
+        this._applet_context_menu.addMenuItem(this.showControlsSwitch);
+
+        this.showLabelSwitch = new PopupMenu.PopupSwitchMenuItem(
+            "Show title",
+            true
+        );
+
+        this.showLabelSwitch.connect("toggled", (item, state) => {
+            this.showLabel = state;
+            this._updateLabelVisibility();
+        });
+
+        this._applet_context_menu.addMenuItem(this.showLabelSwitch);
 
         this.box = new St.BoxLayout({
             style_class: "panel-status-menu-box",
@@ -62,6 +105,20 @@ class MusicApplet extends Applet.Applet {
 
         btn.connect("clicked", callback);
         return btn;
+    }
+
+    _updateLabelVisibility() {
+        let visible = this.showLabel;
+
+        this.trackLabel.visible = visible;
+    }
+
+    _updateControlsVisibility() {
+        let visible = this.showControls;
+
+        this.prevBtn.visible = visible;
+        this.playBtn.visible = visible;
+        this.nextBtn.visible = visible;
     }
 
     _updatePlaybackStatus() {
