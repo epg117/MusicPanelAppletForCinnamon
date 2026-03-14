@@ -97,5 +97,4 @@ Created as a learning and productivity project for Linux Mint / Cinnamon.
 
 ## 📜 License
 
-MIT License
-Feel free to use, modify, and share.
+GPL-3.0 License
