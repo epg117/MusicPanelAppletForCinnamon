@@ -15,41 +15,47 @@ class MusicApplet extends Applet.Applet {
 
         this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
 
-        // Default value: true (show controls)
+        this.showControls = true;
+        this.showLabel = true;
+
         this.settings.bind(
             "show-controls",
             "showControls",
-            this._updateControlsVisibility,
+            () => this._updateControlsVisibility(),
             null
         );
 
         this.settings.bind(
             "show-label",
             "showLabel",
-            this._updateLabelVisibility,
+            () => this._updateLabelVisibility(),
             null
         );
 
         this.showControlsSwitch = new PopupMenu.PopupSwitchMenuItem(
             "Show controls",
-            true
+            this.showControls
         );
 
         this.showControlsSwitch.connect("toggled", (item, state) => {
-            this.showControls = state;
-            this._updateControlsVisibility();
+            if (this.showControls !== state) {
+                this.showControls = state;
+                this._updateControlsVisibility();
+            }
         });
 
         this._applet_context_menu.addMenuItem(this.showControlsSwitch);
 
         this.showLabelSwitch = new PopupMenu.PopupSwitchMenuItem(
             "Show title",
-            true
+            this.showLabel
         );
 
         this.showLabelSwitch.connect("toggled", (item, state) => {
-            this.showLabel = state;
-            this._updateLabelVisibility();
+            if (this.showLabel !== state) {
+                this.showLabel = state;
+                this._updateLabelVisibility();
+            }
         });
 
         this._applet_context_menu.addMenuItem(this.showLabelSwitch);
@@ -85,6 +91,9 @@ class MusicApplet extends Applet.Applet {
         this.bus = Gio.DBus.session;
         this.players = [];
 
+        this._updateLabelVisibility();
+        this._updateControlsVisibility();
+
         this._updatePlayers();
         this.timer = setInterval(() => this._updatePlayers(), 2000);
         this._statusTimer = setInterval(() => this._updatePlaybackStatus(), 1000);
@@ -109,12 +118,16 @@ class MusicApplet extends Applet.Applet {
 
     _updateLabelVisibility() {
         let visible = this.showLabel;
+        if (this.showLabelSwitch && this.showLabelSwitch.state !== visible)
+            this.showLabelSwitch.setToggleState(visible);
 
         this.trackLabel.visible = visible;
     }
 
     _updateControlsVisibility() {
         let visible = this.showControls;
+        if (this.showControlsSwitch && this.showControlsSwitch.state !== visible)
+            this.showControlsSwitch.setToggleState(visible);
 
         this.prevBtn.visible = visible;
         this.playBtn.visible = visible;
