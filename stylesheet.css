@@ -3,6 +3,15 @@
     min-height: 0;
     min-width: 0;
     border-radius: 6px;
+    transition-duration: 150ms;
+}
+
+.miapplet-button:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.miapplet-button:active {
+    background-color: rgba(255, 255, 255, 0.22);
 }
 
 .miapplet-track {
@@ -13,3 +22,31 @@
 }
 
 /* IMPORTANTE: eliminar cualquier margin-top */
+
+.miapplet-popup {
+    padding: 10px;
+    min-width: 220px;
+}
+
+.miapplet-popup-cover {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 10px;
+}
+
+.miapplet-popup-title {
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+}
+
+.miapplet-popup-artist {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.miapplet-popup-controls {
+    spacing: 6px;
+}
