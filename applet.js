@@ -6,6 +6,8 @@ const MprisClient = require('./modules/mprisClient');
 const TrackPopup = require('./modules/trackPopup');
 const { createControlButton } = require('./modules/controlButton');
 
+const VOLUME_SCROLL_STEP = 0.05;
+
 class MusicApplet extends Applet.Applet {
 
     constructor(metadata, orientation, panelHeight, instanceId) {
@@ -91,7 +93,8 @@ class MusicApplet extends Applet.Applet {
         this.mpris = new MprisClient({
             onPlayersChanged: (players) => this._onPlayersChanged(players),
             onPlaybackStatus: (status) => this._onPlaybackStatus(status),
-            onTrackInfo: (info) => this._onTrackInfo(info)
+            onTrackInfo: (info) => this._onTrackInfo(info),
+            onVolume: (volume) => this.popup.setVolume(volume)
         });
 
         this.popup = new TrackPopup({
@@ -100,13 +103,16 @@ class MusicApplet extends Applet.Applet {
             menuManager: this._menuManager,
             onPrevious: () => this.mpris.send("Previous"),
             onTogglePlayPause: () => this.mpris.togglePlayPause(),
-            onNext: () => this.mpris.send("Next")
+            onNext: () => this.mpris.send("Next"),
+            onVolumeChange: (value) => this.mpris.setVolume(value)
         });
 
         this.popup.onOpenStateChanged((open) => {
             if (open)
                 this.mpris.refresh();
         });
+
+        this.actor.connect("scroll-event", (actor, event) => this._onScrollEvent(event));
 
         this._updateLabelVisibility();
         this._updateControlsVisibility();
@@ -116,6 +122,15 @@ class MusicApplet extends Applet.Applet {
 
     on_applet_clicked(event) {
         this.popup.toggle();
+    }
+
+    _onScrollEvent(event) {
+        let direction = event.get_scroll_direction();
+
+        if (direction === Clutter.ScrollDirection.UP)
+            this.mpris.changeVolume(VOLUME_SCROLL_STEP);
+        else if (direction === Clutter.ScrollDirection.DOWN)
+            this.mpris.changeVolume(-VOLUME_SCROLL_STEP);
     }
 
     _updateLabelVisibility() {

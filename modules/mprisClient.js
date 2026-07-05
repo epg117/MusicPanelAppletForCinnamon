@@ -11,6 +11,7 @@ class MprisClient {
         this.bus = Gio.DBus.session;
         this.players = [];
         this.playbackStatus = null;
+        this.volume = 1;
     }
 
     start() {
@@ -38,6 +39,34 @@ class MprisClient {
             this.send("Play");
         else
             this.send("PlayPause");
+    }
+
+    setVolume(value) {
+        if (this.players.length === 0)
+            return;
+
+        let clamped = Math.max(0, Math.min(1, value));
+        this.volume = clamped;
+
+        this.bus.call(
+            this.players[0],
+            MPRIS_PATH,
+            "org.freedesktop.DBus.Properties",
+            "Set",
+            new GLib.Variant("(ssv)", [MPRIS_PLAYER_IFACE, "Volume", new GLib.Variant("d", clamped)]),
+            null,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+            null
+        );
+
+        if (this._callbacks.onVolume)
+            this._callbacks.onVolume(clamped);
+    }
+
+    changeVolume(delta) {
+        this.setVolume(this.volume + delta);
     }
 
     send(cmd) {
@@ -138,6 +167,13 @@ class MprisClient {
 
                     let status = props["PlaybackStatus"]?.deep_unpack();
                     let metadata = props["Metadata"]?.deep_unpack();
+                    let volume = props["Volume"]?.deep_unpack();
+
+                    if (volume !== undefined) {
+                        this.volume = volume;
+                        if (this._callbacks.onVolume)
+                            this._callbacks.onVolume(volume);
+                    }
 
                     if (!metadata) {
                         if (this._callbacks.onTrackInfo)

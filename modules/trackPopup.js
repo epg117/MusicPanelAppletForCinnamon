@@ -4,25 +4,32 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Clutter = imports.gi.Clutter;
 const Util = imports.misc.util;
+const Slider = imports.ui.slider.Slider;
 
 const { createControlButton } = require('./modules/controlButton');
 
 const COVER_SIZE = 150;
 const POPUP_ICON_SIZE = 24;
+const VOLUME_ICON_SIZE = 16;
+
+// How long to ignore incoming volume updates after the user drags the
+// slider, so periodic polling doesn't fight with the interaction.
+const VOLUME_SUPPRESS_MICROS = 1500000;
 
 class TrackPopup {
-    constructor({ applet, orientation, menuManager, onPrevious, onTogglePlayPause, onNext }) {
+    constructor({ applet, orientation, menuManager, onPrevious, onTogglePlayPause, onNext, onVolumeChange }) {
         this._lastArtUrl = undefined;
         this._coverTmpFile = null;
         this._coverLoadHandle = 0;
+        this._volumeSuppressUntil = 0;
 
         this.menu = new Applet.AppletPopupMenu(applet, orientation);
         menuManager.addMenu(this.menu);
 
-        this._build(onPrevious, onTogglePlayPause, onNext);
+        this._build(onPrevious, onTogglePlayPause, onNext, onVolumeChange);
     }
 
-    _build(onPrevious, onTogglePlayPause, onNext) {
+    _build(onPrevious, onTogglePlayPause, onNext, onVolumeChange) {
         let container = new St.BoxLayout({
             style_class: "miapplet-popup",
             vertical: true
@@ -61,10 +68,35 @@ class TrackPopup {
         controlsBox.add(this.playBtn);
         controlsBox.add(this.nextBtn);
 
+        let volumeBox = new St.BoxLayout({
+            vertical: false,
+            style_class: "miapplet-popup-volume"
+        });
+        volumeBox.set_y_align(Clutter.ActorAlign.CENTER);
+
+        this.volumeIcon = new St.Icon({
+            icon_name: "audio-volume-high-symbolic",
+            icon_type: St.IconType.SYMBOLIC,
+            icon_size: VOLUME_ICON_SIZE,
+            y_align: Clutter.ActorAlign.CENTER
+        });
+
+        this.volumeSlider = new Slider(1);
+        this.volumeSlider.actor.x_expand = true;
+        this.volumeSlider.connect("value-changed", (slider, value) => {
+            this._volumeSuppressUntil = GLib.get_monotonic_time() + VOLUME_SUPPRESS_MICROS;
+            if (onVolumeChange)
+                onVolumeChange(value);
+        });
+
+        volumeBox.add(this.volumeIcon);
+        volumeBox.add(this.volumeSlider.actor, { expand: true });
+
         container.add(this.coverBin);
         container.add(this.titleLabel);
         container.add(this.artistLabel);
         container.add(controlsBox);
+        container.add(volumeBox);
 
         this.menu.addActor(container);
     }
@@ -87,6 +119,25 @@ class TrackPopup {
 
     setPlayIcon(iconName) {
         this.playLabel.set_icon_name(iconName);
+    }
+
+    setVolume(value) {
+        if (GLib.get_monotonic_time() < this._volumeSuppressUntil)
+            return;
+
+        this.volumeSlider.setValue(value);
+
+        let iconName;
+        if (value <= 0)
+            iconName = "audio-volume-muted-symbolic";
+        else if (value < 0.34)
+            iconName = "audio-volume-low-symbolic";
+        else if (value < 0.67)
+            iconName = "audio-volume-medium-symbolic";
+        else
+            iconName = "audio-volume-high-symbolic";
+
+        this.volumeIcon.set_icon_name(iconName);
     }
 
     setArtwork(artUrl) {

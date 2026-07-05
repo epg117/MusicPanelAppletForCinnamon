@@ -50,3 +50,8 @@
 .miapplet-popup-controls {
     spacing: 6px;
 }
+
+.miapplet-popup-volume {
+    margin-top: 10px;
+    spacing: 8px;
+}
