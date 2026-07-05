@@ -71,9 +71,9 @@ class MusicApplet extends Applet.Applet {
         this.actor.add_child(this.box);
 
         // Buttons
-        this.prevBtn = createControlButton("⏮", () => this.mpris.send("Previous"));
-        this.playBtn = createControlButton("❚❚", () => this.mpris.togglePlayPause());
-        this.nextBtn = createControlButton("⏭", () => this.mpris.send("Next"));
+        this.prevBtn = createControlButton("media-skip-backward-symbolic", () => this.mpris.send("Previous"));
+        this.playBtn = createControlButton("media-playback-start-symbolic", () => this.mpris.togglePlayPause());
+        this.nextBtn = createControlButton("media-skip-forward-symbolic", () => this.mpris.send("Next"));
 
         this.trackLabel = new St.Label({
             text: "",
@@ -141,8 +141,8 @@ class MusicApplet extends Applet.Applet {
     }
 
     _onPlaybackStatus(status) {
-        let icon = status === "Playing" ? "⏸" : "▸";
-        this.playLabel.set_text(icon);
+        let icon = status === "Playing" ? "media-playback-pause-symbolic" : "media-playback-start-symbolic";
+        this.playLabel.set_icon_name(icon);
         this.popup.setPlayIcon(icon);
     }
 

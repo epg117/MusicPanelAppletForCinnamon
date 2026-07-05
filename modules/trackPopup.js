@@ -8,6 +8,7 @@ const Util = imports.misc.util;
 const { createControlButton } = require('./modules/controlButton');
 
 const COVER_SIZE = 150;
+const POPUP_ICON_SIZE = 24;
 
 class TrackPopup {
     constructor({ applet, orientation, menuManager, onPrevious, onTogglePlayPause, onNext }) {
@@ -51,9 +52,9 @@ class TrackPopup {
         });
         controlsBox.set_x_align(Clutter.ActorAlign.CENTER);
 
-        this.prevBtn = createControlButton("⏮", onPrevious);
-        this.playBtn = createControlButton("❚❚", onTogglePlayPause);
-        this.nextBtn = createControlButton("⏭", onNext);
+        this.prevBtn = createControlButton("media-skip-backward-symbolic", onPrevious, POPUP_ICON_SIZE);
+        this.playBtn = createControlButton("media-playback-start-symbolic", onTogglePlayPause, POPUP_ICON_SIZE);
+        this.nextBtn = createControlButton("media-skip-forward-symbolic", onNext, POPUP_ICON_SIZE);
         this.playLabel = this.playBtn.get_child();
 
         controlsBox.add(this.prevBtn);
@@ -84,8 +85,8 @@ class TrackPopup {
         this.artistLabel.set_text(text || "");
     }
 
-    setPlayIcon(text) {
-        this.playLabel.set_text(text);
+    setPlayIcon(iconName) {
+        this.playLabel.set_icon_name(iconName);
     }
 
     setArtwork(artUrl) {
